@@ -1,0 +1,77 @@
+package protocobuff_Demo;
+// 关注1：包名
+// --- 作用：防止不同 .proto 项目间命名 发生冲突
+
+
+option java_package = "yds.yds.yds.proto";
+// 定义：Java包名
+// 作用：指定生成的类应该放在什么Java包名下
+// 注：如不显式指定，默认包名为：按照应用名称倒序方式进行排序
+
+option java_outer_classname = "Demo";
+// 定义：类名
+// 作用：生成对应.java 文件的类名（不能跟下面message的类名相同）
+// 注：如不显式指定，则默认为把.proto文件名转换为首字母大写来生成
+// 如.proto文件名="my_proto.proto"，默认情况下，将使用 "MyProto" 做为类名
+
+// option optimize_for = ***;
+option optimize_for = LITE_RUNTIME;
+// 作用：影响 C++  & java 代码的生成
+// ***参数如下：
+// 1. SPEED (默认):：protocol buffer编译器将通过在消息类型上执行序列化、语法分析及其他通用的操作。（最优方式）
+// 2. CODE_SIZE:：编译器将会产生最少量的类，通过共享或基于反射的代码来实现序列化、语法分析及各种其它操作。
+// 特点：采用该方式产生的代码将比SPEED要少很多， 但是效率较低；
+// 使用场景：常用在 包含大量.proto文件 但 不追求效率 的应用中。
+//3.  LITE_RUNTIME:：编译器依赖于运行时 核心类库 来生成代码（即采用libprotobuf-lite 替代libprotobuf）。
+// 特点：这种核心类库要比全类库小得多（忽略了 一些描述符及反射 ）；编译器采用该模式产生的方法实现与SPEED模式不相上下，产生的类通过实现 MessageLite接口，但它仅仅是Messager接口的一个子集。
+// 应用场景：移动手机平台应用
+
+//option cc_generic_services = false;
+//option java_generic_services = false;
+//option py_generic_services = false;
+// 作用：定义在C++、java、python中，protocol buffer编译器是否应该 基于服务定义 产生 抽象服务代码（2.3.0版本前该值默认 = true）
+// 自2.3.0版本以来，官方认为通过提供 代码生成器插件 来对 RPC实现 更可取，而不是依赖于“抽象”服务
+
+//optional repeated int32 samples = 4 [packed=true];
+// 如果该选项在一个整型基本类型上被设置为真，则采用更紧凑的编码方式（不会对数值造成损失）
+// 在2.3.0版本前，解析器将会忽略 非期望的包装值。因此，它不可能在 不破坏现有框架的兼容性上 而 改变压缩格式。
+// 在2.3.0之后，这种改变将是安全的，解析器能够接受上述两种格式。
+
+//optional int32 old_field = 6 [deprecated=true];
+// 作用：判断该字段是否已经被弃用
+// 作用同 在java中的注解@Deprecated
+
+// 关注3：消息模型
+// 下面详细说明
+// 生成 Person 消息对象（包含多个字段，下面详细说明）
+// // 消息对象用message修饰
+message Person {
+    // 字段修饰符 + 字段类型 + 字段名 + 标识号
+    // // 基本数据类型 字段
+    required string name = 1;
+    required int32 id = 2;
+    optional string email = 3;
+    // private String name;
+    // private int id;
+    // private String email;
+
+    // 枚举类型 字段
+    enum PhoneType {
+        MOBILE = 0;
+        HOME = 1;
+        WORK = 2;
+    }
+
+    message PhoneNumber {
+        required string number = 1;
+        // // 枚举类型 字段
+        optional PhoneType type = 2 [default = HOME];
+    }
+    
+    // 消息类型 字段
+    repeated PhoneNumber phone = 4;
+}
+
+message AddressBook {
+    repeated Person person = 1;
+}
